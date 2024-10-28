@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -13,12 +14,14 @@ from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 import pytz
 from werkzeug.utils import secure_filename
-import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///spare_parts.db'
-app.config['SECRET_KEY'] = 'your_secret_key'
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
+# Menggunakan environment variables
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI', 'sqlite:///spare_parts.db')
+app.config['UPLOAD_FOLDER'] = os.getenv('UPLOAD_FOLDER', 'static/uploads')
+
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -101,7 +104,6 @@ def register():
     if current_user.role != 'admin':
         flash('You do not have permission to access this page.', 'danger')
         return redirect(url_for('index'))
-
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -148,7 +150,6 @@ def add_part():
         if photo:
             filename = secure_filename(photo.filename)
             photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
         existing_part = SparePart.query.filter_by(part_number=part_number).first()
         if existing_part:
             part_name = existing_part.name
@@ -256,24 +257,27 @@ def report():
 
 def send_email(subject, recipients, body):
     try:
-        smtp_server = "smtp-relay.brevo.com"
-        smtp_port = 587
-        smtp_login = "7e29eb002@smtp-brevo.com"
-        smtp_password = "WKX4Nw9y0Eg5TJnI"  # Updated SMTP password
+        smtp_server = os.getenv('SMTP_SERVER', 'smtp-relay.brevo.com')
+        smtp_port = int(os.getenv('SMTP_PORT', 587))
+        smtp_login = os.getenv('SMTP_LOGIN', '7e29eb002@smtp-brevo.com')
+        smtp_password = os.getenv('SMTP_PASSWORD', 'WKX4Nw9y0Eg5TJnI')
+
         msg = MIMEText(body)
         msg['Subject'] = subject
         msg['From'] = "sparepartroom@yahoo.com"
         msg['To'] = ", ".join(recipients)
+
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.starttls()
             server.login(smtp_login, smtp_password)
             server.sendmail(msg['From'], recipients, msg.as_string())
+
         logging.info(f"Email sent to {recipients} with subject '{subject}'")
     except Exception as e:
         logging.error(f"Failed to send email to {recipients}: {e}")
 
 if __name__ == "__main__":
-    app.run(debug=false)
+    app.run(debug=False)
 
 @app.errorhandler(500)
 def internal_error(error):
