@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Trail</title>
+</head>
+<body>
+    <h1>Audit Trail</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Action</th>
+                <th>Part Number</th>
+                <th>Part Name</th>
+                <th>Quantity</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for audit in audits %}
+            <tr>
+                <td>{{ audit.user_id }}</td>
+                <td>{{ audit.action }}</td>
+                <td>{{ audit.part_number }}</td>
+                <td>{{ audit.part_name }}</td>
+                <td>{{ audit.quantity }}</td>
+                <td>{{ audit.timestamp }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="/">Back to Home</a>
+</body>
+</html>
