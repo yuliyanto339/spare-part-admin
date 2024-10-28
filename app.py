@@ -273,7 +273,7 @@ def send_email(subject, recipients, body):
         logging.error(f"Failed to send email to {recipients}: {e}")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=false)
 
 @app.errorhandler(500)
 def internal_error(error):
